@@ -15,7 +15,7 @@ NOTE:
   - We can use type assertion approach as well
     - Ex: const btn = document.querySelector(".test-btn")! as HTMLButtonElement;
   
-- In line 35, event type is automatically predicted by typescript. Whereas in line 47
+- In line 40, event type is automatically predicted by typescript. Whereas in line 52
   we need to pass event type manually.    
 
 */
@@ -30,7 +30,47 @@ type Task = {
   isCompleted: boolean;
 };
 
-const tasks: Task[] = [];
+const loadTasks = (): Task[] => {
+  const storedTasks = localStorage.getItem("tasks");
+  return storedTasks ? JSON.parse(storedTasks) : [];
+};
+
+const addTask = (task: Task): void => {
+  tasks.push(task);
+};
+
+const renderTask = (task: Task): void => {
+  const taskElement = document.createElement("li");
+  taskElement.textContent = task.description;
+
+  // checkbox
+  const taskCheckbox = document.createElement("input");
+  taskCheckbox.type = "checkbox";
+  taskCheckbox.checked = task.isCompleted;
+
+  // toggle checkbox
+  taskCheckbox.addEventListener("change", () => {
+    task.isCompleted = !task.isCompleted;
+    updateStorage()
+  });
+
+  taskElement?.appendChild(taskCheckbox);
+  taskList?.appendChild(taskElement);
+};
+
+const updateStorage = (): void => {
+  localStorage.setItem("tasks", JSON.stringify(tasks));
+};
+
+const tasks: Task[] = loadTasks();
+
+if (tasks?.length > 0) {
+  //   tasks?.forEach((task) => {
+  //     renderTask(task);
+  //   });
+
+  tasks.forEach(renderTask);
+}
 
 // taskForm?.addEventListener('submit', (event) => {
 //     event.preventDefault();
@@ -48,6 +88,19 @@ const createTask = (event: SubmitEvent) => {
   event.preventDefault();
   const taskDescription = formInput?.value;
   if (taskDescription) {
+    // add task to list
+    const task: Task = {
+      description: taskDescription,
+      isCompleted: false,
+    };
+    addTask(task);
+
+    // render tasks
+    renderTask(task);
+
+    // update local storage
+    updateStorage();
+
     formInput.value = "";
     return;
   }
